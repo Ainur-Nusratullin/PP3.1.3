@@ -4,47 +4,26 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.nusratullin.bootcrud.ProjectBoot.model.Role;
 import ru.nusratullin.bootcrud.ProjectBoot.model.User;
-import ru.nusratullin.bootcrud.ProjectBoot.service.RoleService;
 import ru.nusratullin.bootcrud.ProjectBoot.service.UserService;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
+
 
 @Component
 public class DataLoader {
 
     private UserService userService;
-    private RoleService roleService;
 
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
 
-    @Autowired
-    public void setRoleService(RoleService roleService) {
-        this.roleService = roleService;
-    }
-
     @PostConstruct
     @Transactional
     public void loadData() {
-        try {
-            if (roleService.findByName("ROLE_USER").isEmpty()) {
-                roleService.save(new Role("ROLE_USER"));
-            }
-
-            if (roleService.findByName("ROLE_ADMIN").isEmpty()) {
-                roleService.save(new Role("ROLE_ADMIN"));
-            }
-        } catch (Exception e) {
-            System.err.println("Ошибка при создании ролей: " + e.getMessage());
-            e.printStackTrace();
-            return;
-        }
         try {
             if (userService.findByEmail("admin@mail.ru").isEmpty()) {
                 User admin = new User();
@@ -53,12 +32,11 @@ public class DataLoader {
                 admin.setAge(27);
                 admin.setEmail("admin@mail.ru");
                 admin.setPassword("admin");
-                Set<Role> adminRoles = new HashSet<>();
-                roleService.findByName("ROLE_ADMIN").ifPresent(adminRoles::add);
-                roleService.findByName("ROLE_USER").ifPresent(adminRoles::add);
-                Set<String> adminRoleNames = adminRoles.stream()
-                        .map(Role::getName)
-                        .collect(Collectors.toSet());
+
+                Set<String> adminRoleNames = new HashSet<>();
+                adminRoleNames.add("ROLE_ADMIN");
+                adminRoleNames.add("ROLE_USER");
+
                 userService.saveUser(admin.getName(), admin.getSurname(), admin.getAge(),
                         admin.getEmail(), admin.getPassword(), adminRoleNames);
             }
@@ -76,11 +54,10 @@ public class DataLoader {
                 user.setAge(29);
                 user.setEmail("user@mail.ru");
                 user.setPassword("user");
-                Set<Role> userRoles = new HashSet<>();
-                roleService.findByName("ROLE_USER").ifPresent(userRoles::add);
-                Set<String> userRoleNames = userRoles.stream()
-                        .map(Role::getName)
-                        .collect(Collectors.toSet());
+
+                Set<String> userRoleNames = new HashSet<>();
+                userRoleNames.add("ROLE_USER");
+
                 userService.saveUser(user.getName(), user.getSurname(), user.getAge(),
                         user.getEmail(), user.getPassword(), userRoleNames);
             }
@@ -90,3 +67,4 @@ public class DataLoader {
         }
     }
 }
+

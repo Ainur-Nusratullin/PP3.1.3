@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
         userDao.save(user);
     }
 
-    
+
     @Override
     @Transactional
     public Optional<User> findByEmail(String email) {
